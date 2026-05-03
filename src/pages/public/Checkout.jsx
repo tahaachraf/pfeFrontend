@@ -2,20 +2,37 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
-import { createCommande, createCommandeProduit } from "../../api/commandes";
 import { formatPrice } from "../../utils/formatPrice";
 import toast from "react-hot-toast";
-import { Loader2, CheckCircle, ShoppingBag, Lock } from "lucide-react";
+import { Loader2, CheckCircle, ShoppingBag, Package } from "lucide-react";
 
 const IMAGE_BASE = "http://localhost:3500/api/uploads/";
 
+function ItemImage({ item }) {
+  const src =
+    item.imageUrl ||
+    (item.slug_image ? `${IMAGE_BASE}${encodeURIComponent(item.slug_image.normalize("NFC"))}` : null) ||
+    (item.image      ? `${IMAGE_BASE}${encodeURIComponent(item.image.normalize("NFC"))}` : null);
+  if (src)
+    return (
+      <img
+        src={src}
+        alt={item.nom}
+        className="w-full h-full object-cover"
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+      />
+    );
+  return <div className="w-full h-full flex items-center justify-center text-xl">📦</div>;
+}
+
 export default function Checkout() {
-  const { items, total, clearCart } = useCart();
+  const { items, total, commandeId, confirmOrder, cartLoaded } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // La commande est déjà enregistrée en DB dès le premier ajout au panier.
+  // Cette page confirme simplement la commande existante.
   const handleConfirm = async () => {
     if (!user) {
       toast.error("Vous devez être connecté pour passer une commande");
@@ -26,38 +43,10 @@ export default function Checkout() {
       toast.error("Votre panier est vide");
       return;
     }
-
-    setLoading(true);
-    try {
-      const commandeRes = await createCommande({
-        clientId: user._id || user.id,
-        total: total,
-        statut: "En attente",
-      });
-
-      const commandeId = commandeRes.data?._id || commandeRes.data?.id;
-
-      if (commandeId) {
-        await Promise.all(
-          items.map((item) =>
-            createCommandeProduit({
-              id_commande: commandeId,
-              id_produit: item._id,
-              quantite: item.quantity,
-              prixUnitaire: item.prix,
-            })
-          )
-        );
-      }
-
-      clearCart();
-      setSuccess(true);
-      toast.success("Commande passée avec succès !");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Erreur lors de la commande");
-    } finally {
-      setLoading(false);
-    }
+    // Met le statut à "Confirmée" en DB et vide l'état frontend
+    await confirmOrder();
+    setSuccess(true);
+    toast.success("Commande confirmée !");
   };
 
   if (success) {
@@ -70,7 +59,7 @@ export default function Checkout() {
         <p className="text-gray-600 text-center max-w-md">
           Votre commande est en attente de traitement. Vous pouvez suivre son état dans votre espace client.
         </p>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap justify-center">
           <button
             onClick={() => navigate("/mon-compte")}
             className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 transition"
@@ -84,6 +73,15 @@ export default function Checkout() {
             Retour à l'accueil
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (!cartLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gap-3 text-gray-500">
+        <Loader2 size={28} className="animate-spin text-blue-600" />
+        <span>Chargement…</span>
       </div>
     );
   }
@@ -108,18 +106,13 @@ export default function Checkout() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Articles */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="font-semibold text-gray-800 text-lg mb-2">Articles</h2>
           {items.map((item) => (
             <div key={item._id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0">
               <div className="w-14 h-14 flex-shrink-0 bg-gray-50 rounded-xl overflow-hidden">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.nom} className="w-full h-full object-cover" />
-                ) : item.image ? (
-                  <img src={`${IMAGE_BASE}${encodeURIComponent(item.image)}`} alt={item.nom} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xl">📦</div>
-                )}
+                <ItemImage item={item} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 text-sm line-clamp-1">{item.nom}</p>
@@ -134,6 +127,7 @@ export default function Checkout() {
           </div>
         </div>
 
+        {/* Confirmation */}
         <div className="flex flex-col gap-4">
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <h2 className="font-semibold text-gray-800 text-lg mb-4">Client</h2>
@@ -144,28 +138,29 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Email</span>
-                <span className="font-medium">{user?.email}</span>
+                <span className="font-medium truncate ml-4">{user?.email}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800">
-            <div className="flex items-center gap-2 font-semibold mb-1">
-              <Lock size={14} />
-              Paiement en cours de déploiement
+          {commandeId && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-sm text-green-800 flex items-start gap-2">
+              <Package size={16} className="flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold mb-0.5">Commande déjà enregistrée en base</p>
+                <p className="text-green-700 text-xs">
+                  Votre panier a été synchronisé avec la base de données. Confirmez pour finaliser la commande.
+                </p>
+              </div>
             </div>
-            <p className="text-amber-700 text-xs">
-              Le paiement en ligne sera disponible prochainement. Votre commande sera enregistrée avec le statut "En attente".
-            </p>
-          </div>
+          )}
 
           <button
             onClick={handleConfirm}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-60 text-base"
+            className="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl hover:bg-blue-700 transition flex items-center justify-center gap-2 text-base"
           >
-            {loading && <Loader2 size={20} className="animate-spin" />}
-            {loading ? "Enregistrement..." : "Confirmer la commande"}
+            <CheckCircle size={20} />
+            Confirmer la commande
           </button>
 
           <Link

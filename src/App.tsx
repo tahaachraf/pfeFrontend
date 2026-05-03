@@ -5,6 +5,7 @@ import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
+
 import Home from "./pages/public/Home";
 import CategoryPage from "./pages/public/CategoryPage";
 import ProductDetail from "./pages/public/ProductDetail";
@@ -31,7 +32,13 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <Toaster position="top-right" toastOptions={{ duration: 3000, style: { borderRadius: "12px", fontSize: "14px" } }} />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: { borderRadius: "12px", fontSize: "14px" },
+            }}
+          />
           <Routes>
             <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
             <Route path="/categorie/:slug" element={<PublicLayout><CategoryPage /></PublicLayout>} />
@@ -41,8 +48,24 @@ export default function App() {
             <Route path="/connexion" element={<Login />} />
             <Route path="/inscription" element={<Register />} />
             <Route path="/compte-active" element={<CompteActive />} />
-            <Route path="/commande" element={<PrivateRoute roles={["client","superAdmin","Client","Admin","actif","internaute"]}><PublicLayout><Checkout /></PublicLayout></PrivateRoute>} />
-            <Route path="/mon-compte" element={<PrivateRoute roles={["client","superAdmin","adminMarketing","adminAchat","Client","Admin","actif","internaute"]}><PublicLayout><MonCompte /></PublicLayout></PrivateRoute>} />
+
+            <Route
+              path="/commande"
+              element={
+                <PrivateRoute roles={["client", "superAdmin"]}>
+                  <PublicLayout><Checkout /></PublicLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/mon-compte"
+              element={
+                <PrivateRoute roles={["client", "superAdmin", "adminMarketing", "adminAchat"]}>
+                  <PublicLayout><MonCompte /></PublicLayout>
+                </PrivateRoute>
+              }
+            />
+
             <Route path="*" element={<PublicLayout><div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><h1 className="text-2xl font-bold text-gray-800">Page introuvable</h1><a href="/" className="text-blue-600 hover:underline">Retour à l'accueil</a></div></PublicLayout>} />
           </Routes>
         </CartProvider>
