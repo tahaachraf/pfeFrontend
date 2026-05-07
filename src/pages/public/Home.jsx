@@ -7,7 +7,10 @@ import { buildTree } from "../../utils/categoryTree";
 import ProductCard from "../../components/ProductCard";
 import { Loader2, ArrowRight, Tag, Truck, Shield, Headphones, ChevronLeft, ChevronRight } from "lucide-react";
 
-const IMAGE_BASE = "http://localhost:3500/api/uploads/";
+const IMAGE_BASE =
+  typeof window !== "undefined" && window.location.port === "5173"
+    ? "http://localhost:3500/api/uploads/"
+    : "/api/uploads/";
 
 function BrandsCarousel({ marques }) {
   const trackRef = useRef(null);

@@ -9,15 +9,24 @@ import Breadcrumb from "../../components/Breadcrumb";
 import toast from "react-hot-toast";
 import { Loader2, ShoppingCart, Package, Clock, CheckCircle, XCircle, FileText, Download, ChevronLeft, ChevronRight } from "lucide-react";
 
-const IMAGE_BASE = "http://localhost:3500/api/uploads/";
+const IS_LOCAL = typeof window !== "undefined" && window.location.port === "5173";
+const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
 
-// slug_image = URL propre (sans accents/espaces) → priorité dans le src
-// img.image = fallback si le fichier slug n'existe pas encore
-const getImageUrl = (img, useOriginal = false) => {
+// Local  : fichiers nommés avec espaces  → priorité img.image (nom original)
+// Replit : fichiers nommés en slug       → priorité img.slug_image
+const getImageUrl = (img, useFallback = false) => {
   if (!img) return null;
-  const fn = useOriginal
-    ? (img.image || img.slug_image || "").normalize("NFC")
-    : (img.slug_image || img.image || "").normalize("NFC");
+  let fn;
+  if (!useFallback) {
+    fn = IS_LOCAL
+      ? (img.image || img.slug_image || "")
+      : (img.slug_image || img.image || "");
+  } else {
+    fn = IS_LOCAL
+      ? (img.slug_image || img.image || "")
+      : (img.image || img.slug_image || "");
+  }
+  fn = fn.normalize("NFC");
   return fn ? `${IMAGE_BASE}${encodeURIComponent(fn)}` : null;
 };
 
@@ -114,9 +123,14 @@ export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0);
   const [triedFallback, setTriedFallback] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [failedIndexes, setFailedIndexes] = useState([]);
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
+    setActiveImage(0);
+    setTriedFallback(false);
+    setImageError(false);
+    setFailedIndexes([]);
     Promise.all([
       getProduits(),
       getImagesProduits(),
@@ -139,7 +153,12 @@ export default function ProductDetail() {
         if (found) {
           getPiecesJointes(found._id)
             .then((pjRes) => {
-              const pj = Array.isArray(pjRes.data) ? pjRes.data : pjRes.data?.data || [];
+              const all = Array.isArray(pjRes.data) ? pjRes.data : pjRes.data?.data || [];
+              // Filtre côté client au cas où le backend ne filtre pas par id_produit
+              const pj = all.filter((p) => {
+                const pid = p.id_produit?._id || p.id_produit;
+                return String(pid) === String(found._id);
+              });
               setPiecesJointes(pj);
             })
             .catch(() => {});
@@ -161,8 +180,12 @@ export default function ProductDetail() {
   );
 
   // Filtrer et trier les images par ordreAffichage (1 en premier)
+  // Utiliser String() pour éviter les erreurs de comparaison objet vs string (MongoDB populate)
   const productImages = images
-    .filter((img) => img.id_produit === product._id || img.id_produit?._id === product._id)
+    .filter((img) => {
+      const imgProduitId = String(img.id_produit?._id || img.id_produit || "");
+      return imgProduitId === String(product._id);
+    })
     .sort((a, b) => (a.ordreAffichage ?? 999) - (b.ordreAffichage ?? 999));
 
   const catId = product.categorie?._id || product.categorie;
@@ -208,8 +231,21 @@ export default function ProductDetail() {
                 alt={productImages[activeImage]?.texte_alternatif || product.nom}
                 className="w-full h-full object-contain"
                 onError={() => {
-                  if (!triedFallback) setTriedFallback(true);
-                  else setImageError(true);
+                  if (!triedFallback) {
+                    setTriedFallback(true);
+                  } else {
+                    const nextFailed = [...failedIndexes, activeImage];
+                    setFailedIndexes(nextFailed);
+                    const nextIndex = productImages.findIndex(
+                      (_, i) => !nextFailed.includes(i) && i !== activeImage
+                    );
+                    if (nextIndex !== -1) {
+                      setActiveImage(nextIndex);
+                      setTriedFallback(false);
+                    } else {
+                      setImageError(true);
+                    }
+                  }
                 }}
               />
             ) : (

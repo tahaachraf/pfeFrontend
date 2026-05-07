@@ -4,15 +4,24 @@ import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/formatPrice";
 import toast from "react-hot-toast";
 
-const IMAGE_BASE = "http://localhost:3500/api/uploads/";
+const IS_LOCAL = typeof window !== "undefined" && window.location.port === "5173";
+const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
 
-// slug_image = URL propre (sans accents/espaces) → priorité dans le src
-// img.image = fallback si le fichier slug n'existe pas encore
-const getImageUrl = (img, useOriginal = false) => {
+// Local  : fichiers nommés avec espaces  → priorité img.image (nom original)
+// Replit : fichiers nommés en slug       → priorité img.slug_image
+const getImageUrl = (img, useFallback = false) => {
   if (!img) return null;
-  const fn = useOriginal
-    ? (img.image || img.slug_image || "").normalize("NFC")
-    : (img.slug_image || img.image || "").normalize("NFC");
+  let fn;
+  if (!useFallback) {
+    fn = IS_LOCAL
+      ? (img.image || img.slug_image || "")
+      : (img.slug_image || img.image || "");
+  } else {
+    fn = IS_LOCAL
+      ? (img.slug_image || img.image || "")
+      : (img.image || img.slug_image || "");
+  }
+  fn = fn.normalize("NFC");
   return fn ? `${IMAGE_BASE}${encodeURIComponent(fn)}` : null;
 };
 
