@@ -24,7 +24,8 @@ export default function Cart() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isInternaute = !user || user.role === "internaute";
+  const isAnonymous  = !user;
+  const isInternaute = user?.role === "internaute";
   const canCheckout  = user && CAN_CHECKOUT.includes(user.role);
 
   const handleRemove = async (item) => {
@@ -39,6 +40,10 @@ export default function Cart() {
 
   const handleCheckout = () => {
     if (canCheckout) { navigate("/commande"); return; }
+    if (isInternaute) {
+      toast("Votre rôle ne permet pas le paiement. Contactez l'administrateur.", { icon: "🔒" });
+      return;
+    }
     toast("Créez un compte pour finaliser votre commande", { icon: "👤" });
     navigate("/inscription");
   };
@@ -76,7 +81,9 @@ export default function Cart() {
       {canCheckout && (
         <p className="text-sm text-green-600 mb-6">✅ Panier synchronisé avec votre compte</p>
       )}
-      {isInternaute && (
+
+      {/* Visiteur non connecté */}
+      {isAnonymous && (
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
             <p className="font-semibold text-amber-800 text-sm">
@@ -93,6 +100,20 @@ export default function Cart() {
             <Link to="/connexion" className="flex items-center gap-1 border border-gray-300 text-gray-700 text-xs font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition">
               <LogIn size={13} /> Se connecter
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Connecté mais rôle internaute */}
+      {isInternaute && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <p className="font-semibold text-blue-800 text-sm">
+              Votre compte ne permet pas le paiement
+            </p>
+            <p className="text-blue-700 text-xs mt-0.5">
+              Votre rôle actuel (internaute) ne vous permet pas de finaliser une commande. Contactez l'administrateur pour activer votre compte client.
+            </p>
           </div>
         </div>
       )}
@@ -171,8 +192,10 @@ export default function Cart() {
               disabled={syncing}
               className="mt-6 w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-center hover:bg-blue-700 transition disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {isInternaute ? (
+              {isAnonymous ? (
                 <><UserPlus size={16} /> S'inscrire pour commander</>
+              ) : isInternaute ? (
+                <><LogIn size={16} /> Compte non autorisé au paiement</>
               ) : (
                 "Passer la commande"
               )}

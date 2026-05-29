@@ -16,6 +16,7 @@ import Login from "./pages/public/Login";
 import Register from "./pages/public/Register";
 import MonCompte from "./pages/public/MonCompte";
 import CompteActive from "./pages/public/CompteActive";
+import CheckoutSuccess from "./pages/public/CheckoutSuccess";
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -54,6 +55,14 @@ export default function App() {
               element={
                 <PrivateRoute roles={["client", "superAdmin"]}>
                   <PublicLayout><Checkout /></PublicLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/commande/success"
+              element={
+                <PrivateRoute roles={["client", "superAdmin"]}>
+                  <PublicLayout><CheckoutSuccess /></PublicLayout>
                 </PrivateRoute>
               }
             />

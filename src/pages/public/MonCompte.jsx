@@ -34,7 +34,7 @@ export default function MonCompte() {
         const allCmds = Array.isArray(cmdRes.data) ? cmdRes.data : cmdRes.data?.data || [];
         const myCmds = allCmds.filter((c) => {
           const cid = c.clientId?._id || c.clientId;
-          return cid === userId;
+          return cid === userId && c.statut === "Confirmée";
         });
         setCommandes(myCmds);
         setCommandeProduits(Array.isArray(cpRes.data) ? cpRes.data : cpRes.data?.data || []);
@@ -65,7 +65,7 @@ export default function MonCompte() {
       <div className="flex gap-2 mb-8 border-b border-gray-200">
         {[
           { key: "profil",    label: "Mon profil",      icon: <User size={16} /> },
-          { key: "commandes", label: "Mes commandes",   icon: <Package size={16} /> },
+          { key: "commandes", label: "Historique des commandes", icon: <Package size={16} /> },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -110,8 +110,8 @@ export default function MonCompte() {
           ) : commandes.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">📦</div>
-              <h3 className="text-lg font-semibold text-gray-700">Aucune commande</h3>
-              <p className="text-gray-500 text-sm mt-1">Vous n'avez pas encore passé de commande.</p>
+              <h3 className="text-lg font-semibold text-gray-700">Aucune commande confirmée</h3>
+              <p className="text-gray-500 text-sm mt-1">Vos commandes payées apparaîtront ici.</p>
             </div>
           ) : (
             <div className="space-y-4">
