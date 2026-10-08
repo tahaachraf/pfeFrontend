@@ -5,10 +5,11 @@ import {
   getCommandeProduits, createCommandeProduit, updateCommandeProduit, deleteCommandeProduit,
 } from "../api/commandes";
 import api from "../api/axios";
+import { IMAGE_BASE } from "../config";
 
 const CartContext = createContext(null);
 
-const IMAGE_BASE   = "http://localhost:3500/api/uploads/";
+
 const GUEST_CMD_KEY = "guestCommandeId"; // clé localStorage pour visiteurs anonymes
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

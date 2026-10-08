@@ -9,11 +9,11 @@ import Breadcrumb from "../../components/Breadcrumb";
 import Pagination from "../../components/Pagination";
 import BrandModelFilter from "../../components/BrandModelFilter";
 import { Loader2, Layers } from "lucide-react";
+import { IMAGE_BASE, IS_LOCAL } from "../../config";
 
 const ITEMS_PER_PAGE = 12;
 
-const IS_LOCAL = typeof window !== "undefined" && window.location.port === "5173";
-const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
+
 
 const getCatImageUrl = (img, useFallback = false) => {
   if (!img) return null;
@@ -207,8 +207,8 @@ function SubcategoryCard({ cat }) {
   const [imgError, setImgError] = useState(false);
 
   const imgUrl = cat.image
-    ? (IS_LOCAL ? `http://localhost:3500/api/uploads/${encodeURIComponent(cat.image.normalize("NFC"))}` : `/api/uploads/${encodeURIComponent(cat.image.normalize("NFC"))}`)
-    : null;
+        ? `${IMAGE_BASE}${encodeURIComponent(cat.image.normalize("NFC"))}`
+      : null;
 
   return (
     <Link

@@ -1,19 +1,13 @@
 import axios from "axios";
-
-const baseURL =
-  typeof window !== "undefined" && window.location.port === "5173"
-    ? "http://localhost:3500/api"
-    : "/api";
+import { API_URL } from "../config";
 
 const api = axios.create({
-  baseURL,
+  baseURL: API_URL,
 });
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default api;

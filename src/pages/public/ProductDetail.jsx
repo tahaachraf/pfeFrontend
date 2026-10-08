@@ -7,10 +7,9 @@ import { useCart } from "../../context/CartContext";
 import { formatPrice } from "../../utils/formatPrice";
 import Breadcrumb from "../../components/Breadcrumb";
 import toast from "react-hot-toast";
+import { IMAGE_BASE, IS_LOCAL, API_URL } from "../../config";
 import { Loader2, ShoppingCart, Package, Clock, CheckCircle, XCircle, FileText, Download, ChevronLeft, ChevronRight } from "lucide-react";
 
-const IS_LOCAL = typeof window !== "undefined" && window.location.port === "5173";
-const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
 
 // Local  : fichiers nommés avec espaces  → priorité img.image (nom original)
 // Replit : fichiers nommés en slug       → priorité img.slug_image
@@ -32,7 +31,7 @@ const getImageUrl = (img, useFallback = false) => {
 
 const getPieceUrl = (pj) => {
   const filename = pj.url || pj.fichier || pj.nom || "";
-  return filename ? `http://localhost:3500/api/pieces-jointes-files/${encodeURIComponent(filename)}` : "#";
+  return filename ? `${API_URL}/pieces-jointes-files/${encodeURIComponent(filename)}` : "#";
 };
 
 const matchProduit = (img, productId) => {

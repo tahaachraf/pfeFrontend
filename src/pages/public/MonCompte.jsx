@@ -2,12 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getCommandes, getCommandeProduits } from "../../api/commandes";
 import { formatPrice } from "../../utils/formatPrice";
+import { IMAGE_BASE } from "../../config";
 import { Loader2, Package, User, Clock, ChevronDown, ChevronUp } from "lucide-react";
 
-const IMAGE_BASE =
-  typeof window !== "undefined" && window.location.port === "5173"
-    ? "http://localhost:3500/api/uploads/"
-    : "/api/uploads/";
 
 const STATUT_COLORS = {
   "En attente": "bg-yellow-100 text-yellow-800",

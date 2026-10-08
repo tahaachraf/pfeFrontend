@@ -37,7 +37,7 @@ export default function Register() {
     } catch (err) {
       if (!err.response) {
         // Pas de réponse = backend hors ligne ou crash
-        toast.error("Impossible de contacter le serveur (port 3500). Vérifiez que node server.js tourne.", { duration: 6000 });
+        toast.error("Impossible de contacter le serveur. Réessayez dans un instant.", { duration: 6000 });
       } else {
         // Réponse reçue mais erreur HTTP
         const msg =

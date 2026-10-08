@@ -96,8 +96,7 @@ export default function SearchResults() {
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <div className="text-6xl mb-4">⚠️</div>
         <h2 className="text-2xl font-bold text-red-700 mb-2">Impossible de contacter le serveur</h2>
-        <p className="text-gray-600 mb-1">Assurez-vous que le backend tourne sur <strong>http://localhost:3500</strong></p>
-        <p className="text-gray-500 text-sm">Dans le dossier <code>pfe/</code>, exécutez : <strong>node server.js</strong></p>
+        <p className="text-gray-600 mb-1">Le serveur est peut-être en cours de démarrage. Réessayez dans un instant.</p>
       </div>
     );
   }

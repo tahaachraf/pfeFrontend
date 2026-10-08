@@ -7,8 +7,7 @@ import api from "../../api/axios";
 import toast from "react-hot-toast";
 import { Loader2, CreditCard, ShoppingBag, ChevronRight, ArrowLeft } from "lucide-react";
 
-const IS_LOCAL = window.location.port === "5173";
-const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
+import { IMAGE_BASE } from "../../config";
 
 function ItemImage({ item }) {
   const src =

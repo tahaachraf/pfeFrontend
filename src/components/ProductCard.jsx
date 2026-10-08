@@ -3,9 +3,8 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/formatPrice";
 import toast from "react-hot-toast";
+import { IMAGE_BASE, IS_LOCAL } from "../config";
 
-const IS_LOCAL = typeof window !== "undefined" && window.location.port === "5173";
-const IMAGE_BASE = IS_LOCAL ? "http://localhost:3500/api/uploads/" : "/api/uploads/";
 
 // Local  : fichiers nommés avec espaces  → priorité img.image (nom original)
 // Replit : fichiers nommés en slug       → priorité img.slug_image

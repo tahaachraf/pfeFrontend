@@ -5,12 +5,9 @@ import { getProduits, getImagesProduits } from "../../api/produits";
 import { getMarques } from "../../api/marques";
 import { buildTree } from "../../utils/categoryTree";
 import ProductCard from "../../components/ProductCard";
+import { IMAGE_BASE, API_ORIGIN } from "../../config";
 import { Loader2, ArrowRight, Tag, Truck, Shield, Headphones, ChevronLeft, ChevronRight } from "lucide-react";
 
-const IMAGE_BASE =
-  typeof window !== "undefined" && window.location.port === "5173"
-    ? "http://localhost:3500/api/uploads/"
-    : "/api/uploads/";
 
 function BrandsCarousel({ marques }) {
   const trackRef = useRef(null);
@@ -140,8 +137,8 @@ export default function Home() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
         <div className="text-6xl">⚠️</div>
         <h2 className="text-2xl font-bold text-red-700">Impossible de contacter le serveur backend</h2>
-        <p className="text-gray-600">Assurez-vous que le backend tourne sur <strong>http://localhost:3500</strong></p>
-        <p className="text-gray-500 text-sm">Dans le dossier <code className="bg-gray-100 px-1 rounded">pfe/</code>, lancez : <code className="bg-gray-100 px-1 rounded">node server.js</code></p>
+        <p className="text-gray-600">Le serveur est peut-être en cours de démarrage (cela peut prendre jusqu'à une minute). Réessayez dans un instant.</p>
+        <p className="text-gray-400 text-xs break-all">{API_ORIGIN}</p>
         <button onClick={() => window.location.reload()} className="mt-2 bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition text-sm">
           Réessayer
         </button>

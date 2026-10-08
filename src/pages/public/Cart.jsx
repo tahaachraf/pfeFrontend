@@ -4,8 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { formatPrice } from "../../utils/formatPrice";
 import { Trash2, ShoppingBag, Plus, Minus, Loader2, UserPlus, LogIn } from "lucide-react";
 import toast from "react-hot-toast";
-
-const IMAGE_BASE = "http://localhost:3500/api/uploads/";
+import { IMAGE_BASE } from "../../config";
 
 function ItemImage({ item }) {
   const src = item.imageUrl ||
