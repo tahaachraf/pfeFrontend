@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -30,7 +30,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <CartProvider>
           <Toaster
@@ -75,7 +75,17 @@ export default function App() {
               }
             />
 
-            <Route path="*" element={<PublicLayout><div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><h1 className="text-2xl font-bold text-gray-800">Page introuvable</h1><a href="/" className="text-blue-600 hover:underline">Retour à l'accueil</a></div></PublicLayout>} />
+            <Route
+              path="*"
+              element={
+                <PublicLayout>
+                  <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800">Page introuvable</h1>
+                    <Link to="/" className="text-blue-600 hover:underline">Retour à l'accueil</Link>
+                  </div>
+                </PublicLayout>
+              }
+            />
           </Routes>
         </CartProvider>
       </AuthProvider>
